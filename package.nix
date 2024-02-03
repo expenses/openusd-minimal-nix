@@ -1,4 +1,4 @@
-{ stdenv, lib, cmake, boost, tbb, libGL, opensubdiv, darwin }:
+{ stdenv, lib, cmake, boost, tbb, libGL, opensubdiv, darwin, xorg }:
 stdenv.mkDerivation {
   name = "openusd-minimal";
 
@@ -14,7 +14,7 @@ stdenv.mkDerivation {
   # at compile time) and normal build inputs (runnable on target
   # platform at run time) is important for cross compilation.
   nativeBuildInputs = [ cmake ];
-  buildInputs = [ boost tbb libGL opensubdiv ] ++ lib.optionals stdenv.isDarwin (with darwin.apple_sdk.frameworks; [Cocoa Metal MetalKit]);
+  buildInputs = [ boost tbb libGL opensubdiv xorg.libX11 ] ++ lib.optionals stdenv.isDarwin (with darwin.apple_sdk.frameworks; [Cocoa Metal MetalKit]);
 
   cmakeFlags = [
     "-DPXR_ENABLE_PYTHON_SUPPORT=false"

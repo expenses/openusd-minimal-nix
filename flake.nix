@@ -1,7 +1,7 @@
 {
   description = "C++ Crosscompilation Example";
 
-  inputs = { nixpkgs.url = "path:/Users/ashley/nixpkgs"; };
+  inputs = { nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable"; };
 
   outputs = inputs@{ flake-parts, ... }:
     flake-parts.lib.mkFlake { inherit inputs; } {
