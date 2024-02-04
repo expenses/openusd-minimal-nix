@@ -12,6 +12,8 @@
           babble = pkgs.callPackage ./package.nix { };
           default = config.packages.babble;
 
+          apple-sdk-11 = pkgs.darwin.apple_sdk_11_0.callPackage ./package.nix {};
+
           x86 = pkgs.pkgsCross.gnu64.callPackage ./package.nix { };
           x86-static =
             pkgs.pkgsCross.gnu64.pkgsStatic.callPackage ./package.nix { };

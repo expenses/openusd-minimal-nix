@@ -14,7 +14,7 @@ stdenv.mkDerivation {
   # at compile time) and normal build inputs (runnable on target
   # platform at run time) is important for cross compilation.
   nativeBuildInputs = [ cmake ];
-  buildInputs = [ boost tbb libGL opensubdiv xorg.libX11 ] ++ lib.optionals stdenv.isDarwin (with darwin.apple_sdk.frameworks; [Cocoa Metal MetalKit]);
+  buildInputs = [ boost tbb libGL opensubdiv xorg.libX11 ] ++ lib.optionals stdenv.isDarwin (with darwin.apple_sdk_11_0.frameworks; [Cocoa MetalKit]);
 
   cmakeFlags = [
     "-DPXR_ENABLE_PYTHON_SUPPORT=false"
