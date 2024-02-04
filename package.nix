@@ -1,4 +1,4 @@
-{ stdenv, lib, cmake, boost, tbb, libGL, opensubdiv, darwin, xorg }:
+{ stdenv, lib, cmake, boost, tbb, libGL, opensubdiv, darwin, xorg, static ? false }:
 stdenv.mkDerivation {
   name = "openusd-minimal";
 
@@ -18,5 +18,5 @@ stdenv.mkDerivation {
 
   cmakeFlags = [
     "-DPXR_ENABLE_PYTHON_SUPPORT=false"
-  ];
+  ] ++ lib.optionals static (["-DBUILD_SHARED_LIBS=false"]);
 }
