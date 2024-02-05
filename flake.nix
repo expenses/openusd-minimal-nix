@@ -16,6 +16,11 @@
           apple-sdk-11 =
             pkgs.darwin.apple_sdk_11_0.callPackage ./package.nix { };
 
+          apple-sdk-11-static =
+            pkgs.darwin.apple_sdk_11_0.callPackage ./package.nix {
+              static = true;
+            };
+
           windows = pkgs.pkgsCross.mingwW64.callPackage ./package.nix { };
         };
       };
