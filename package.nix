@@ -1,5 +1,5 @@
-{ stdenv, lib, cmake, boost, tbb, libGL, opensubdiv, darwin, xorg
-, static ? false }:
+{ stdenv, lib, cmake, boost, tbb, libGL, opensubdiv, darwin, xorg, embree
+, static ? false, embreeSupport ? true }:
 stdenv.mkDerivation {
   name = "openusd-minimal";
 
@@ -18,8 +18,10 @@ stdenv.mkDerivation {
   buildInputs = [ boost tbb libGL opensubdiv ]
     ++ lib.optionals stdenv.isLinux ([ xorg.libX11 ])
     ++ lib.optionals stdenv.isDarwin
-    (with darwin.apple_sdk_11_0.frameworks; [ Cocoa MetalKit ]);
+    (with darwin.apple_sdk_11_0.frameworks; [ Cocoa MetalKit ])
+    ++ lib.optionals embreeSupport ([ embree ]);
 
   cmakeFlags = [ "-DPXR_ENABLE_PYTHON_SUPPORT=false" ]
+    ++ lib.optionals embreeSupport ([ "-DPXR_BUILD_EMBREE_PLUGIN=true" ])
     ++ lib.optionals static ([ "-DBUILD_SHARED_LIBS=false" ]);
 }
