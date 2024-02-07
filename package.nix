@@ -1,4 +1,4 @@
-{ stdenv, lib, cmake, boost, tbb, libGL, opensubdiv, darwin, xorg, embree, draco
+{ stdenv, lib, cmake, boost, tbb, libGL, opensubdiv, darwin, xorg, embree, draco, openimageio, openexr, imath
 , static ? false, embreeSupport ? false, dracoSupport ? false }:
 stdenv.mkDerivation {
   name = "openusd-minimal";
@@ -15,14 +15,15 @@ stdenv.mkDerivation {
   # at compile time) and normal build inputs (runnable on target
   # platform at run time) is important for cross compilation.
   nativeBuildInputs = [ cmake ];
-  buildInputs = [ boost tbb libGL opensubdiv ]
+
+  buildInputs = [ boost tbb libGL opensubdiv openimageio openexr imath ]
     ++ lib.optionals stdenv.isLinux ([ xorg.libX11 ])
     ++ lib.optionals stdenv.isDarwin
     (with darwin.apple_sdk_11_0.frameworks; [ Cocoa MetalKit ])
     ++ lib.optionals embreeSupport ([ embree ])
     ++ lib.optionals dracoSupport ([ draco ]);
 
-  cmakeFlags = [ "-DPXR_ENABLE_PYTHON_SUPPORT=false" ]
+  cmakeFlags = [ "-DPXR_ENABLE_PYTHON_SUPPORT=false" "-DPXR_BUILD_OPENIMAGEIO_PLUGIN=true" ]
     ++ lib.optionals embreeSupport ([ "-DPXR_BUILD_EMBREE_PLUGIN=true" ])
     ++ lib.optionals dracoSupport ([ "-DPXR_BUILD_DRACO_PLUGIN=true" ])
     ++ lib.optionals static ([ "-DBUILD_SHARED_LIBS=false" ]);
