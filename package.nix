@@ -1,5 +1,5 @@
 { stdenv, lib, cmake, boost, tbb, libGL, opensubdiv, darwin, xorg, embree, draco
-, static ? false, embreeSupport ? true, dracoSupport ? true }:
+, static ? false, embreeSupport ? false, dracoSupport ? false }:
 stdenv.mkDerivation {
   name = "openusd-minimal";
 
