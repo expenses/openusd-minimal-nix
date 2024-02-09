@@ -14,6 +14,11 @@
       perSystem = { config, pkgs, system, ... }: {
         packages = let
           args = {
+            # Override the stdenv for darwin as we need to use the 11.0 sdk and not 10.x
+            stdenv = if pkgs.stdenv.isDarwin then
+              pkgs.darwin.apple_sdk_11_0.stdenv
+            else
+              pkgs.stdenv;
             materialx = materialx.packages.${system}.default;
           };
           fullArgs = args // {
@@ -29,8 +34,11 @@
           static = pkgs.callPackage ./package.nix (args // { static = true; });
 
           windows = pkgs.pkgsCross.mingwW64.callPackage ./package.nix (args // {
-            tbb = pkgs.callPackage ./tbb-win.nix {};
-            opensubdiv = pkgs.pkgsCross.mingwW64.callPackage ./opensubdiv-win-msys2.nix {};
+            stdenv = pkgs.pkgsCross.mingwW64.stdenv;
+            tbb = pkgs.callPackage ./tbb-win.nix { };
+            opensubdiv =
+              pkgs.pkgsCross.mingwW64.callPackage ./opensubdiv-win-msys2.nix
+              { };
             static = true;
           });
         };
