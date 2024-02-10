@@ -7,8 +7,8 @@ stdenv.mkDerivation {
   # good source filtering is important for caching of builds.
   # It's easier when subprojects have their own distinct subfolders.
   src = fetchGit {
-    url = "/home/ashley/projects/OpenUSD";
-    rev = "9b19d56b05ccf6f553d9c6294e35b65597408a70";
+    url = "https://github.com/expenses/USD";
+    rev = "2aa863add12173342a61657b53555be05e39693f";
   };
 
   # Distinguishing between native build inputs (runnable on the host

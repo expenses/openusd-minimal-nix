@@ -1,6 +1,6 @@
 { stdenv, fetchurl, zstd }:
 stdenv.mkDerivation {
-  name = "tbb-2020.3-win";
+  name = "tbb-2020-msys2";
 
   src = fetchurl ({
     url =
@@ -8,7 +8,7 @@ stdenv.mkDerivation {
     hash = "sha256-U4osrbGXjsWtjYP993VsvsTFlhpwlCQ6oIh/jtvsVqA=";
   });
 
-  buildInputs = [ zstd ];
+  nativeBuildInputs = [ zstd ];
 
   installPhase = ''
     mkdir $out

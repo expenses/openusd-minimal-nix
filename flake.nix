@@ -35,10 +35,9 @@
 
           windows = pkgs.pkgsCross.mingwW64.callPackage ./package.nix (args // {
             stdenv = pkgs.pkgsCross.mingwW64.stdenv;
-            tbb = pkgs.callPackage ./tbb-win.nix { };
-            opensubdiv =
-              pkgs.pkgsCross.mingwW64.callPackage ./opensubdiv-win-msys2.nix
-              { };
+            tbb = pkgs.callPackage ./msys2-packages/tbb-2020.nix { };
+            opensubdiv = pkgs.pkgsCross.mingwW64.callPackage
+              ./msys2-packages/opensubdiv.nix { };
             static = true;
           });
         };
