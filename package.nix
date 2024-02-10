@@ -8,6 +8,7 @@ stdenv.mkDerivation {
   # It's easier when subprojects have their own distinct subfolders.
   src = fetchGit {
     url = "https://github.com/expenses/USD";
+    ref = "mingw-build";
     rev = "2aa863add12173342a61657b53555be05e39693f";
   };
 
