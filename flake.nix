@@ -20,6 +20,7 @@
             else
               pkgs.stdenv;
             materialx = materialx.packages.${system}.default;
+            vulkan-sdk = pkgs.callPackage ./vulkan-sdk.nix { };
           };
           fullArgs = args // {
             embreeSupport = true;
@@ -31,7 +32,10 @@
           default = pkgs.callPackage ./package.nix args;
           full = pkgs.callPackage ./package.nix fullArgs;
 
+          vulkan-sdk = args.vulkan-sdk;
+
           static = pkgs.callPackage ./package.nix (args // { static = true; });
+          vulkan = pkgs.callPackage ./package.nix (args // { vulkanSupport = true; });
 
           windows = pkgs.pkgsCross.mingwW64.callPackage ./package.nix args;
         };
