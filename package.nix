@@ -1,7 +1,12 @@
 { stdenv, lib, cmake, boost, tbb, libGL, opensubdiv, darwin, xorg, embree, draco
 , vulkan-sdk, vulkan-loader, openimageio, openexr, imath, materialx
-, static ? false, embreeSupport ? false, dracoSupport ? false
-, openimageioSupport ? false, materialxSupport ? false, vulkanSupport ? false }:
+, static ? false
+, monolithic ? false
+, embreeSupport ? false
+, dracoSupport ? false
+, openimageioSupport ? false
+, materialxSupport ? false
+, vulkanSupport ? false }:
 stdenv.mkDerivation {
   name = "openusd-minimal";
 
@@ -34,6 +39,7 @@ stdenv.mkDerivation {
 
   cmakeFlags = [ "-DPXR_ENABLE_PYTHON_SUPPORT=false" ]
     ++ lib.optionals static ([ "-DBUILD_SHARED_LIBS=false" ])
+    ++ lib.optionals monolithic ([ "-DPXR_BUILD_MONOLITHIC=true" ])
     ++ lib.optionals embreeSupport ([ "-DPXR_BUILD_EMBREE_PLUGIN=true" ])
     ++ lib.optionals dracoSupport ([ "-DPXR_BUILD_DRACO_PLUGIN=true" ])
     ++ lib.optionals openimageioSupport
