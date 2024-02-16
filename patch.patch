@@ -1,0 +1,558 @@
+commit 27f980074a154dc7a0d04061967784c90207cac9
+Author: Ashley Ruglys <ashley.ruglys@gmail.com>
+Date:   Sat Feb 10 17:09:22 2024 +1300
+
+    Get compiling via mingw
+
+diff --git a/pxr/base/arch/CMakeLists.txt b/pxr/base/arch/CMakeLists.txt
+index b21ebd03a..15f1141d6 100644
+--- a/pxr/base/arch/CMakeLists.txt
++++ b/pxr/base/arch/CMakeLists.txt
+@@ -6,7 +6,7 @@ set(PXR_PACKAGE arch)
+ 
+ set(PLATFORM_LIBS ${M_LIB})
+ if(WIN32)
+-    set(PLATFORM_LIBS Ws2_32.lib Dbghelp.lib ${PLATFORM_LIBS})
++    set(PLATFORM_LIBS ws2_32.lib dbghelp.lib ${PLATFORM_LIBS})
+ endif()
+ 
+ pxr_library(arch
+diff --git a/pxr/base/arch/assumptions.cpp b/pxr/base/arch/assumptions.cpp
+index 3952f136c..57c4a9121 100644
+--- a/pxr/base/arch/assumptions.cpp
++++ b/pxr/base/arch/assumptions.cpp
+@@ -41,7 +41,7 @@
+ #include <sys/sysctl.h>
+ #include <mach-o/arch.h>
+ #elif defined(ARCH_OS_WINDOWS)
+-#include <Windows.h>
++#include <windows.h>
+ #include <memory>
+ #endif
+ 
+diff --git a/pxr/base/arch/attributes.cpp b/pxr/base/arch/attributes.cpp
+index dc75c2001..912951f61 100644
+--- a/pxr/base/arch/attributes.cpp
++++ b/pxr/base/arch/attributes.cpp
+@@ -271,7 +271,7 @@ PXR_NAMESPACE_CLOSE_SCOPE
+ 
+ #elif defined(ARCH_OS_WINDOWS)
+ 
+-#include <Windows.h>
++#include <windows.h>
+ #include <algorithm>
+ #include <cstddef>
+ #include <cstring>
+diff --git a/pxr/base/arch/attributes.h b/pxr/base/arch/attributes.h
+index 0df315f83..e3f509291 100644
+--- a/pxr/base/arch/attributes.h
++++ b/pxr/base/arch/attributes.h
+@@ -264,17 +264,6 @@ struct Arch_ConstructorEntry {
+     };                                                                         \
+     static void _name(__VA_ARGS__)
+ 
+-#elif defined(ARCH_COMPILER_GCC) || defined(ARCH_COMPILER_CLANG)
+-
+-// The used attribute is required to prevent these apparently unused functions
+-// from being removed by the linker.
+-#   define ARCH_CONSTRUCTOR(_name, _priority, ...) \
+-        __attribute__((used, section(".pxrctor"), constructor((_priority) + 100))) \
+-        static void _name(__VA_ARGS__)
+-#   define ARCH_DESTRUCTOR(_name, _priority, ...) \
+-        __attribute__((used, section(".pxrdtor"), destructor((_priority) + 100))) \
+-        static void _name(__VA_ARGS__)
+-
+ #elif defined(ARCH_OS_WINDOWS)
+     
+ #    include "pxr/base/arch/api.h"
+@@ -333,6 +322,17 @@ struct Arch_ConstructorInit {
+     _ARCH_ENSURE_PER_LIB_INIT(Arch_ConstructorInit, _archCtorInit);            \
+     static void _name(__VA_ARGS__)
+ 
++#elif defined(ARCH_COMPILER_GCC) || defined(ARCH_COMPILER_CLANG)
++
++// The used attribute is required to prevent these apparently unused functions
++// from being removed by the linker.
++#   define ARCH_CONSTRUCTOR(_name, _priority, ...) \
++        __attribute__((used, section(".pxrctor"), constructor((_priority) + 100))) \
++        static void _name(__VA_ARGS__)
++#   define ARCH_DESTRUCTOR(_name, _priority, ...) \
++        __attribute__((used, section(".pxrdtor"), destructor((_priority) + 100))) \
++        static void _name(__VA_ARGS__)
++
+ #else
+ 
+ // Leave macros undefined so we'll fail to build on a new system/compiler
+diff --git a/pxr/base/arch/debugger.cpp b/pxr/base/arch/debugger.cpp
+index fd093f09e..855c008f9 100644
+--- a/pxr/base/arch/debugger.cpp
++++ b/pxr/base/arch/debugger.cpp
+@@ -50,7 +50,7 @@
+ #include <sys/sysctl.h>
+ #endif
+ #if defined(ARCH_OS_WINDOWS)
+-#include <Windows.h>
++#include <windows.h>
+ #endif
+ #include <atomic>
+ 
+diff --git a/pxr/base/arch/env.cpp b/pxr/base/arch/env.cpp
+index a0f5ae757..942ce05bc 100644
+--- a/pxr/base/arch/env.cpp
++++ b/pxr/base/arch/env.cpp
+@@ -29,7 +29,7 @@
+ #include <regex>
+ 
+ #if defined(ARCH_OS_WINDOWS)
+-#include <Windows.h>
++#include <windows.h>
+ #else
+ #include <stdlib.h>
+ #endif
+diff --git a/pxr/base/arch/errno.cpp b/pxr/base/arch/errno.cpp
+index 7dcae2839..fcea312b2 100644
+--- a/pxr/base/arch/errno.cpp
++++ b/pxr/base/arch/errno.cpp
+@@ -27,7 +27,7 @@
+ #include <cerrno>
+ #include <cstring>
+ #if defined(ARCH_OS_WINDOWS)
+-#include <Windows.h>
++#include <windows.h>
+ #endif
+ 
+ PXR_NAMESPACE_OPEN_SCOPE
+@@ -55,7 +55,7 @@ ArchStrerror(int errorCode)
+     //   unknown). The string always includes a terminating null byte.
+     //
+     return strerror_r(errorCode, msg_buf, 256);
+-#elif !defined(ARCH_COMPILER_MSVC)
++#elif !defined(ARCH_OS_WINDOWS)
+     strerror_r(errorCode, msg_buf, 256);
+ #else
+     strerror_s(msg_buf, 256, errorCode);
+diff --git a/pxr/base/arch/fileSystem.cpp b/pxr/base/arch/fileSystem.cpp
+index e2d5db444..418471fff 100644
+--- a/pxr/base/arch/fileSystem.cpp
++++ b/pxr/base/arch/fileSystem.cpp
+@@ -48,8 +48,9 @@
+ #include <functional>
+ #include <io.h>
+ #include <process.h>
+-#include <Windows.h>
+-#include <WinIoCtl.h>
++#include <windows.h>
++#include <winioctl.h>
++#include <share.h>
+ #else
+ #include <alloca.h>
+ #include <sys/mman.h>
+diff --git a/pxr/base/arch/library.cpp b/pxr/base/arch/library.cpp
+index 65e6b4bd2..0ecc9320a 100644
+--- a/pxr/base/arch/library.cpp
++++ b/pxr/base/arch/library.cpp
+@@ -27,7 +27,7 @@
+ #include "pxr/base/arch/errno.h"
+ 
+ #if defined(ARCH_OS_WINDOWS)
+-#include <Windows.h>
++#include <windows.h>
+ #else
+ #include <dlfcn.h>
+ #endif
+@@ -88,7 +88,7 @@ int ArchLibraryClose(void* handle)
+ void* ArchLibraryGetSymbolAddress(void* handle, const char* name)
+ {
+ #if defined(ARCH_OS_WINDOWS)
+-    return GetProcAddress(reinterpret_cast<HMODULE>(handle), name);
++    return (void*)GetProcAddress(reinterpret_cast<HMODULE>(handle), name);
+ #else
+     return dlsym(handle, name);
+ #endif
+diff --git a/pxr/base/arch/pch.h b/pxr/base/arch/pch.h
+index e12a42b03..a9856419e 100644
+--- a/pxr/base/arch/pch.h
++++ b/pxr/base/arch/pch.h
+@@ -65,12 +65,12 @@
+ #define WIN32_LEAN_AND_MEAN
+ #endif
+ 
+-#include <Windows.h>
+-#include <DbgHelp.h>
+-#include <Memoryapi.h>
+-#include <Psapi.h>
+-#include <WinIoCtl.h>
+-#include <Winsock2.h>
++#include <windows.h>
++#include <dbghelp.h>
++#include <memoryapi.h>
++#include <psapi.h>
++#include <winioctl.h>
++#include <winsock2.h>
+ #include <chrono>
+ #include <direct.h>
+ #include <intrin.h>
+diff --git a/pxr/base/arch/stackTrace.cpp b/pxr/base/arch/stackTrace.cpp
+index 1d75c7799..856d2bef9 100644
+--- a/pxr/base/arch/stackTrace.cpp
++++ b/pxr/base/arch/stackTrace.cpp
+@@ -35,7 +35,7 @@
+ #if defined(ARCH_OS_WINDOWS)
+ // Need to include Winsock2.h BEFORE windows.h - which is included in
+ // fileSystem.h
+-#include <Winsock2.h>
++#include <winsock2.h>
+ #endif
+ #include "pxr/base/arch/fileSystem.h"
+ #include "pxr/base/arch/inttypes.h"
+@@ -44,7 +44,7 @@
+ #if defined(ARCH_OS_WINDOWS)
+ #include <io.h>
+ #include <process.h>
+-#include <DbgHelp.h>
++#include <dbghelp.h>
+ #ifndef MAXHOSTNAMELEN
+ #define MAXHOSTNAMELEN 64
+ #endif
+diff --git a/pxr/base/arch/symbols.cpp b/pxr/base/arch/symbols.cpp
+index 299c71aab..97874c705 100644
+--- a/pxr/base/arch/symbols.cpp
++++ b/pxr/base/arch/symbols.cpp
+@@ -32,9 +32,9 @@
+ #elif defined(ARCH_OS_DARWIN)
+ #include <dlfcn.h>
+ #elif defined(ARCH_OS_WINDOWS)
+-#include <Windows.h>
+-#include <DbgHelp.h>
+-#include <Psapi.h>
++#include <windows.h>
++#include <dbghelp.h>
++#include <psapi.h>
+ #endif
+ 
+ PXR_NAMESPACE_OPEN_SCOPE
+diff --git a/pxr/base/arch/systemInfo.cpp b/pxr/base/arch/systemInfo.cpp
+index d667c43ec..8e40bedda 100644
+--- a/pxr/base/arch/systemInfo.cpp
++++ b/pxr/base/arch/systemInfo.cpp
+@@ -45,7 +45,7 @@
+ 
+ #elif defined(ARCH_OS_WINDOWS)
+ 
+-    #include <Windows.h>
++    #include <windows.h>
+     #include <direct.h>
+     #define getcwd(buffer_, size_) _getcwd(buffer_, size_)
+ 
+diff --git a/pxr/base/arch/testenv/testArchUtil.cpp b/pxr/base/arch/testenv/testArchUtil.cpp
+index 174156337..6f648fb80 100644
+--- a/pxr/base/arch/testenv/testArchUtil.cpp
++++ b/pxr/base/arch/testenv/testArchUtil.cpp
+@@ -35,7 +35,7 @@
+ #include <cstring>
+ 
+ #if defined(ARCH_OS_WINDOWS)
+-#include <Windows.h>
++#include <windows.h>
+ #include <process.h>
+ #include <csignal>
+ #else
+diff --git a/pxr/base/arch/timing.cpp b/pxr/base/arch/timing.cpp
+index 99ce4ce97..f65ad327d 100644
+--- a/pxr/base/arch/timing.cpp
++++ b/pxr/base/arch/timing.cpp
+@@ -42,7 +42,7 @@
+ #include <cstdlib>
+ #include <cstring>
+ #elif defined(ARCH_OS_WINDOWS)
+-#include <Windows.h>
++#include <windows.h>
+ #include <chrono>
+ #endif
+ 
+diff --git a/pxr/base/arch/virtualMemory.cpp b/pxr/base/arch/virtualMemory.cpp
+index 3c409fab4..5204570a6 100644
+--- a/pxr/base/arch/virtualMemory.cpp
++++ b/pxr/base/arch/virtualMemory.cpp
+@@ -28,8 +28,8 @@
+ 
+ #include <cstdint>
+ #if defined(ARCH_OS_WINDOWS)
+-#include <Windows.h>
+-#include <Memoryapi.h>
++#include <windows.h>
++#include <memoryapi.h>
+ #else // Assume POSIX
+ #include <sys/mman.h>
+ #endif
+diff --git a/pxr/base/tf/CMakeLists.txt b/pxr/base/tf/CMakeLists.txt
+index 1f7200529..00f2d7923 100644
+--- a/pxr/base/tf/CMakeLists.txt
++++ b/pxr/base/tf/CMakeLists.txt
+@@ -5,7 +5,7 @@ set(PXR_PACKAGE tf)
+ set(PXR_PREFIX pxr/base)
+ 
+ if(WIN32)
+-    set(WINLIBS Shlwapi.lib)
++    set(WINLIBS shlwapi.lib)
+ endif()
+ 
+ # Add a test that WindowsImportWrapper adds entries on the PATH in the correct order, to ensure
+diff --git a/pxr/base/tf/atomicOfstreamWrapper.cpp b/pxr/base/tf/atomicOfstreamWrapper.cpp
+index b3dbd0a25..b060870f0 100644
+--- a/pxr/base/tf/atomicOfstreamWrapper.cpp
++++ b/pxr/base/tf/atomicOfstreamWrapper.cpp
+@@ -42,7 +42,7 @@
+ #include <cstdio>
+ 
+ #if defined(ARCH_OS_WINDOWS)
+-#include <Windows.h>
++#include <windows.h>
+ #include <io.h>
+ #endif
+ 
+diff --git a/pxr/base/tf/atomicRenameUtil.cpp b/pxr/base/tf/atomicRenameUtil.cpp
+index 66bba79ce..34ba07eb4 100644
+--- a/pxr/base/tf/atomicRenameUtil.cpp
++++ b/pxr/base/tf/atomicRenameUtil.cpp
+@@ -34,7 +34,7 @@
+ #include "pxr/base/tf/envSetting.h"
+ 
+ #if defined(ARCH_OS_WINDOWS)
+-#include <Windows.h>
++#include <windows.h>
+ #include <io.h>
+ #endif
+ 
+diff --git a/pxr/base/tf/fileUtils.cpp b/pxr/base/tf/fileUtils.cpp
+index 8a544dd2f..776d28fb0 100644
+--- a/pxr/base/tf/fileUtils.cpp
++++ b/pxr/base/tf/fileUtils.cpp
+@@ -51,9 +51,9 @@
+ #include <dirent.h>
+ #include <utime.h>
+ #else
+-#include <Windows.h>
+-#include <Shellapi.h>
+-#include <ShlwAPI.h>
++#include <windows.h>
++#include <shellapi.h>
++#include <shlwapi.h>
+ #include <sys/utime.h>
+ #endif
+ using std::set;
+diff --git a/pxr/base/tf/pathUtils.cpp b/pxr/base/tf/pathUtils.cpp
+index d8da7fbfd..6b61a9a5d 100644
+--- a/pxr/base/tf/pathUtils.cpp
++++ b/pxr/base/tf/pathUtils.cpp
+@@ -41,8 +41,8 @@
+ #include <vector>
+ 
+ #if defined(ARCH_OS_WINDOWS)
+-#include <Windows.h>
+-#include <Shlwapi.h>
++#include <windows.h>
++#include <shlwapi.h>
+ #else
+ #include <glob.h>
+ #endif
+diff --git a/pxr/base/tf/pch.h b/pxr/base/tf/pch.h
+index 64e232c84..ed4feb512 100644
+--- a/pxr/base/tf/pch.h
++++ b/pxr/base/tf/pch.h
+@@ -56,8 +56,8 @@
+ #define WIN32_LEAN_AND_MEAN
+ #endif
+ 
+-#include <Windows.h>
+-#include <Shlwapi.h>
++#include <windows.h>
++#include <shlwapi.h>
+ #include <intrin.h>
+ #include <io.h>
+ #include <boost/preprocessor/variadic/size.hpp>
+diff --git a/pxr/base/tf/safeOutputFile.cpp b/pxr/base/tf/safeOutputFile.cpp
+index 3ff2d35f4..4d2574927 100644
+--- a/pxr/base/tf/safeOutputFile.cpp
++++ b/pxr/base/tf/safeOutputFile.cpp
+@@ -35,7 +35,7 @@
+ #include "pxr/base/tf/pathUtils.h"
+ 
+ #if defined(ARCH_OS_WINDOWS)
+-#include <Windows.h>
++#include <windows.h>
+ #include <io.h>
+ #endif
+ 
+diff --git a/pxr/base/tf/stringUtils.cpp b/pxr/base/tf/stringUtils.cpp
+index c2f3dc328..4a79d425f 100644
+--- a/pxr/base/tf/stringUtils.cpp
++++ b/pxr/base/tf/stringUtils.cpp
+@@ -50,7 +50,7 @@
+ #include "pxrDoubleConversion/utils.h"
+ 
+ #if defined(ARCH_OS_WINDOWS)
+-#include <Shlwapi.h>
++#include <shlwapi.h>
+ #endif
+ 
+ using std::list;
+diff --git a/pxr/base/tf/testenv/pathUtils.cpp b/pxr/base/tf/testenv/pathUtils.cpp
+index 1a1f84d70..4a6fff892 100644
+--- a/pxr/base/tf/testenv/pathUtils.cpp
++++ b/pxr/base/tf/testenv/pathUtils.cpp
+@@ -35,7 +35,7 @@
+ #include <vector>
+ 
+ #if defined(ARCH_OS_WINDOWS)
+-#include <Windows.h>
++#include <windows.h>
+ #endif
+ 
+ using namespace std;
+diff --git a/pxr/imaging/garch/glPlatformContextWindows.cpp b/pxr/imaging/garch/glPlatformContextWindows.cpp
+index 29176706d..c18614d9d 100644
+--- a/pxr/imaging/garch/glPlatformContextWindows.cpp
++++ b/pxr/imaging/garch/glPlatformContextWindows.cpp
+@@ -24,7 +24,8 @@
+ #include "pxr/imaging/garch/glPlatformContextWindows.h"
+ #include "pxr/base/tf/hash.h"
+ 
+-#include <Windows.h>
++#include <boost/functional/hash.hpp>
++#include <windows.h>
+ 
+ PXR_NAMESPACE_OPEN_SCOPE
+ 
+diff --git a/pxr/imaging/garch/glPlatformDebugWindowWindows.h b/pxr/imaging/garch/glPlatformDebugWindowWindows.h
+index 5fcb34b20..4056ebe5c 100644
+--- a/pxr/imaging/garch/glPlatformDebugWindowWindows.h
++++ b/pxr/imaging/garch/glPlatformDebugWindowWindows.h
+@@ -25,7 +25,7 @@
+ #define PXR_IMAGING_GARCH_GL_PLATFORM_DEBUG_WINDOW_WINDOWS_H
+ 
+ #include "pxr/pxr.h"
+-#include <Windows.h>
++#include <windows.h>
+ 
+ PXR_NAMESPACE_OPEN_SCOPE
+ 
+diff --git a/pxr/imaging/garch/pch.h b/pxr/imaging/garch/pch.h
+index 7ef3bd8af..5d54d4c37 100644
+--- a/pxr/imaging/garch/pch.h
++++ b/pxr/imaging/garch/pch.h
+@@ -40,7 +40,7 @@
+ #endif
+ 
+ #include <tchar.h>
+-#include <Windows.h>
++#include <windows.h>
+ #include <intrin.h>
+ #include <map>
+ #endif
+diff --git a/pxr/imaging/glf/pch.h b/pxr/imaging/glf/pch.h
+index 9a7e85a6c..b2d758878 100644
+--- a/pxr/imaging/glf/pch.h
++++ b/pxr/imaging/glf/pch.h
+@@ -48,7 +48,7 @@
+ #define WIN32_LEAN_AND_MEAN
+ #endif
+ 
+-#include <Windows.h>
++#include <windows.h>
+ #include <intrin.h>
+ #include <io.h>
+ #include <boost/preprocessor/variadic/size.hpp>
+diff --git a/pxr/imaging/hdSt/pch.h b/pxr/imaging/hdSt/pch.h
+index 196960f7b..4e08afcd2 100644
+--- a/pxr/imaging/hdSt/pch.h
++++ b/pxr/imaging/hdSt/pch.h
+@@ -38,7 +38,7 @@
+ #define WIN32_LEAN_AND_MEAN
+ #endif
+ 
+-#include <Windows.h>
++#include <windows.h>
+ #include <intrin.h>
+ #include <boost/preprocessor/variadic/size.hpp>
+ #include <boost/vmd/is_empty.hpp>
+diff --git a/pxr/imaging/hdx/pch.h b/pxr/imaging/hdx/pch.h
+index 33ddb1b5d..ccb3f182d 100644
+--- a/pxr/imaging/hdx/pch.h
++++ b/pxr/imaging/hdx/pch.h
+@@ -38,7 +38,7 @@
+ #define WIN32_LEAN_AND_MEAN
+ #endif
+ 
+-#include <Windows.h>
++#include <windows.h>
+ #include <intrin.h>
+ #include <boost/preprocessor/variadic/size.hpp>
+ #include <boost/vmd/is_empty.hpp>
+diff --git a/pxr/imaging/plugin/hdEmbree/pch.h b/pxr/imaging/plugin/hdEmbree/pch.h
+index 771022980..e6a28253d 100644
+--- a/pxr/imaging/plugin/hdEmbree/pch.h
++++ b/pxr/imaging/plugin/hdEmbree/pch.h
+@@ -38,7 +38,7 @@
+ #define WIN32_LEAN_AND_MEAN
+ #endif
+ 
+-#include <Windows.h>
++#include <windows.h>
+ #include <intrin.h>
+ #include <boost/preprocessor/variadic/size.hpp>
+ #include <boost/vmd/is_empty.hpp>
+diff --git a/pxr/imaging/plugin/hioOiio/pch.h b/pxr/imaging/plugin/hioOiio/pch.h
+index 9a7e85a6c..b2d758878 100644
+--- a/pxr/imaging/plugin/hioOiio/pch.h
++++ b/pxr/imaging/plugin/hioOiio/pch.h
+@@ -48,7 +48,7 @@
+ #define WIN32_LEAN_AND_MEAN
+ #endif
+ 
+-#include <Windows.h>
++#include <windows.h>
+ #include <intrin.h>
+ #include <io.h>
+ #include <boost/preprocessor/variadic/size.hpp>
+diff --git a/pxr/pxrConfig.cmake.in b/pxr/pxrConfig.cmake.in
+index b26f1ea31..f567b7032 100644
+--- a/pxr/pxrConfig.cmake.in
++++ b/pxr/pxrConfig.cmake.in
+@@ -90,8 +90,8 @@ foreach(lib ${libs})
+ endforeach()
+ if(NOT @BUILD_SHARED_LIBS@)
+     if(WIN32)
+-        list(APPEND PXR_LIBRARIES Shlwapi.lib)
+-        list(APPEND PXR_LIBRARIES Dbghelp.lib)
++        list(APPEND PXR_LIBRARIES shlwapi.lib)
++        list(APPEND PXR_LIBRARIES dbghelp.lib)
+     endif()
+     add_definitions(-DPXR_STATIC)
+ endif()
+diff --git a/pxr/usdImaging/usdAppUtils/pch.h b/pxr/usdImaging/usdAppUtils/pch.h
+index 70b9602d5..2382a3371 100644
+--- a/pxr/usdImaging/usdAppUtils/pch.h
++++ b/pxr/usdImaging/usdAppUtils/pch.h
+@@ -38,7 +38,7 @@
+ #define WIN32_LEAN_AND_MEAN
+ #endif
+ 
+-#include <Windows.h>
++#include <windows.h>
+ #include <intrin.h>
+ #include <boost/preprocessor/variadic/size.hpp>
+ #include <boost/vmd/is_empty.hpp>
+diff --git a/pxr/usdImaging/usdImagingGL/pch.h b/pxr/usdImaging/usdImagingGL/pch.h
+index b9dfa7e41..50461bc90 100644
+--- a/pxr/usdImaging/usdImagingGL/pch.h
++++ b/pxr/usdImaging/usdImagingGL/pch.h
+@@ -38,7 +38,7 @@
+ #define WIN32_LEAN_AND_MEAN
+ #endif
+ 
+-#include <Windows.h>
++#include <windows.h>
+ #include <intrin.h>
+ #include <boost/preprocessor/variadic/size.hpp>
+ #include <boost/vmd/is_empty.hpp>

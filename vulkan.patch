@@ -1,0 +1,13 @@
+diff --git a/pxr/pxrConfig.cmake.in b/pxr/pxrConfig.cmake.in
+index f567b7032..cac80440e 100644
+--- a/pxr/pxrConfig.cmake.in
++++ b/pxr/pxrConfig.cmake.in
+@@ -47,6 +47,8 @@ if(@PXR_ENABLE_PYTHON_SUPPORT@)
+     endif()
+ endif()
+ 
++find_package(Vulkan REQUIRED)
++
+ # If MaterialX support was enabled for this USD build, try to find the
+ # associated import targets by invoking the same FindMaterialX.cmake
+ # module that was used for that build. This can be overridden by

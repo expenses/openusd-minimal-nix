@@ -2,7 +2,7 @@
   description = "C++ Crosscompilation Example";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    nixpkgs.url = "/home/ashley/projects/nixpkgs";
     materialx.url = "github:expenses/materialx-nix";
     materialx.inputs.nixpkgs.follows = "nixpkgs";
   };
@@ -20,6 +20,7 @@
             else
               pkgs.stdenv;
             materialx = materialx.packages.${system}.default;
+            vulkan-sdk = pkgs.callPackage ./vulkan-sdk.nix { };
           };
           fullArgs = args // {
             embreeSupport = true;
@@ -31,7 +32,10 @@
           default = pkgs.callPackage ./package.nix args;
           full = pkgs.callPackage ./package.nix fullArgs;
 
+          vulkan-sdk = args.vulkan-sdk;
+
           static = pkgs.callPackage ./package.nix (args // { static = true; });
+          vulkan = pkgs.callPackage ./package.nix (args // { vulkanSupport = true; });
 
           windows = pkgs.pkgsCross.mingwW64.callPackage ./package.nix (args // {
             stdenv = pkgs.pkgsCross.mingwW64.stdenv;
@@ -39,6 +43,8 @@
             opensubdiv = pkgs.pkgsCross.mingwW64.callPackage
               ./msys2-packages/opensubdiv.nix { };
             static = true;
+            vulkanSupport = true;
+            vulkan-sdk = pkgs.pkgsCross.mingwW64.callPackage ./vulkan-sdk.nix { };
           });
         };
       };
