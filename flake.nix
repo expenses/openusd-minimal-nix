@@ -2,7 +2,7 @@
   description = "C++ Crosscompilation Example";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    nixpkgs.url = "github:NixOS/nixpkgs";
     materialx.url = "github:expenses/materialx-nix";
     materialx.inputs.nixpkgs.follows = "nixpkgs";
   };
@@ -27,15 +27,15 @@
             dracoSupport = true;
             openimageioSupport = true;
             materialxSupport = true;
+            vulkanSupport = true;
           };
         in {
           default = pkgs.callPackage ./package.nix args;
+          vulkan = pkgs.callPackage ./package.nix (args // { vulkanSupport = true; });
+          static = pkgs.callPackage ./package.nix (args // { static = true; });
           full = pkgs.callPackage ./package.nix fullArgs;
 
           vulkan-sdk = args.vulkan-sdk;
-
-          static = pkgs.callPackage ./package.nix (args // { static = true; });
-          vulkan = pkgs.callPackage ./package.nix (args // { vulkanSupport = true; });
 
           windows = pkgs.pkgsCross.mingwW64.callPackage ./package.nix args;
         };

@@ -1,7 +1,12 @@
 { stdenv, lib, cmake, boost, tbb, libGL, opensubdiv, darwin, xorg, embree, draco
 , vulkan-sdk, vulkan-loader, openimageio, openexr, imath, materialx
-, static ? false, embreeSupport ? false, dracoSupport ? false
-, openimageioSupport ? false, materialxSupport ? false, vulkanSupport ? false }:
+, static ? false
+, embreeSupport ? false
+, dracoSupport ? false
+, openimageioSupport ? false
+, materialxSupport ? false
+, vulkanSupport ? false
+}:
 stdenv.mkDerivation {
   name = "openusd-minimal";
 
@@ -9,8 +14,7 @@ stdenv.mkDerivation {
   # It's easier when subprojects have their own distinct subfolders.
   src = fetchGit {
     url = "https://github.com/pixaranimationstudios/openusd";
-    ref = "refs/tags/v23.11";
-    rev = if vulkanSupport then "0244f25c9fb7ead390e810b9ddb11471a0603961" else "0b18ad3f840c24eb25e16b795a5b0821cf05126e";
+    rev = "0244f25c9fb7ead390e810b9ddb11471a0603961";
   };
 
   # Distinguishing between native build inputs (runnable on the host
@@ -30,7 +34,8 @@ stdenv.mkDerivation {
     ++ lib.optionals dracoSupport ([ draco ])
     ++ lib.optionals openimageioSupport ([ openimageio openexr imath ])
     ++ lib.optionals materialxSupport ([ materialx ])
-    ++ lib.optionals vulkanSupport ([ vulkan-loader ]);
+    ++ lib.optionals vulkanSupport ([ vulkan-loader ])
+  ;
 
   cmakeFlags = [ "-DPXR_ENABLE_PYTHON_SUPPORT=false" ]
     ++ lib.optionals static ([ "-DBUILD_SHARED_LIBS=false" ])
@@ -40,5 +45,6 @@ stdenv.mkDerivation {
     ([ "-DPXR_BUILD_OPENIMAGEIO_PLUGIN=true" ])
     ++ lib.optionals materialxSupport
     ([ "-DPXR_ENABLE_MATERIALX_SUPPORT=true" ])
-    ++ lib.optionals vulkanSupport ([ "-DPXR_ENABLE_VULKAN_SUPPORT=true" ]);
+    ++ lib.optionals vulkanSupport ([ "-DPXR_ENABLE_VULKAN_SUPPORT=true" ])
+  ;
 }
