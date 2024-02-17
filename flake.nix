@@ -2,7 +2,7 @@
   description = "C++ Crosscompilation Example";
 
   inputs = {
-    nixpkgs.url = "/home/ashley/projects/nixpkgs";
+    nixpkgs.url = "github:expenses/nixpkgs/mingw-shaderc";
     materialx.url = "github:expenses/materialx-nix";
     materialx.inputs.nixpkgs.follows = "nixpkgs";
   };
@@ -27,15 +27,15 @@
             dracoSupport = true;
             openimageioSupport = true;
             materialxSupport = true;
+            vulkanSupport = true;
           };
         in {
           default = pkgs.callPackage ./package.nix args;
+          vulkan = pkgs.callPackage ./package.nix (args // { vulkanSupport = true; });
+          static = pkgs.callPackage ./package.nix (args // { static = true; });
           full = pkgs.callPackage ./package.nix fullArgs;
 
           vulkan-sdk = args.vulkan-sdk;
-
-          static = pkgs.callPackage ./package.nix (args // { static = true; });
-          vulkan = pkgs.callPackage ./package.nix (args // { vulkanSupport = true; });
 
           windows = pkgs.pkgsCross.mingwW64.callPackage ./package.nix (args // {
             stdenv = pkgs.pkgsCross.mingwW64.stdenv;
@@ -43,7 +43,6 @@
             opensubdiv = pkgs.pkgsCross.mingwW64.callPackage
               ./msys2-packages/opensubdiv.nix { };
             static = true;
-            vulkanSupport = true;
             vulkan-sdk = pkgs.pkgsCross.mingwW64.callPackage ./vulkan-sdk.nix { };
           });
         };
