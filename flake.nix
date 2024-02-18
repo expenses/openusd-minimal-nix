@@ -29,6 +29,7 @@
             materialxSupport = true;
             vulkanSupport = true;
           };
+          windows-tbb = pkgs.callPackage ./msys2-packages/tbb-2020.nix { };
         in {
           default = pkgs.callPackage ./package.nix args;
           vulkan = pkgs.callPackage ./package.nix (args // { vulkanSupport = true; });
@@ -37,9 +38,11 @@
 
           vulkan-sdk = args.vulkan-sdk;
 
+          inherit windows-tbb;
+
           windows = pkgs.pkgsCross.mingwW64.callPackage ./package.nix (args // {
             stdenv = pkgs.pkgsCross.mingwW64.stdenv;
-            tbb = pkgs.callPackage ./msys2-packages/tbb-2020.nix { };
+            tbb = windows-tbb;
             opensubdiv = pkgs.pkgsCross.mingwW64.callPackage
               ./msys2-packages/opensubdiv.nix { };
             static = true;
