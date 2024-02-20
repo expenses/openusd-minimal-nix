@@ -1,6 +1,9 @@
-{ stdenv, lib, cmake, boost, tbb, libGL, opensubdiv, darwin, xorg, embree, draco
-, vulkan-sdk, vulkan-loader, openimageio, openexr, imath, materialx
+{ stdenv, lib, cmake, boost, tbb_2021_8, libGL, opensubdiv, darwin, xorg
+, embree, draco, vulkan-sdk, openimageio, openexr, imath, materialx
 , static ? false
+, buildTests ? false
+, buildExamples ? false
+, buildMonolithic ? false
 , embreeSupport ? false
 , dracoSupport ? false
 , openimageioSupport ? false
@@ -21,11 +24,14 @@ stdenv.mkDerivation {
   # at compile time) and normal build inputs (runnable on target
   # platform at run time) is important for cross compilation.
   nativeBuildInputs = [ cmake ];
-  patches = lib.optionals vulkanSupport [ ./vulkan.patch ./patch.patch ];
 
-VULKAN_SDK = if vulkanSupport then "${vulkan-sdk}" else "";
+  VULKAN_SDK = if vulkanSupport then "${vulkan-sdk}" else "";
 
-  buildInputs = [ boost tbb opensubdiv ]
+  patches = [ ./windows-plus-onetbb.patch ]
+    ++ lib.optionals vulkanSupport [ ./vulkan.patch ]
+  ;
+
+  buildInputs = [ boost tbb_2021_8 opensubdiv ]
     ++ lib.optionals (!stdenv.targetPlatform.isWindows) ([ libGL ])
     ++ lib.optionals stdenv.isLinux ([ xorg.libX11 ])
     ++ lib.optionals stdenv.isDarwin
@@ -34,19 +40,19 @@ VULKAN_SDK = if vulkanSupport then "${vulkan-sdk}" else "";
     ++ lib.optionals dracoSupport ([ draco ])
     ++ lib.optionals openimageioSupport ([ openimageio openexr imath ])
     ++ lib.optionals materialxSupport ([ materialx ])
-    ++ lib.optionals vulkanSupport ([ vulkan-loader ])
   ;
 
-  cmakeFlags = [ "-DPXR_ENABLE_PYTHON_SUPPORT=false" ]
-    ++ lib.optionals stdenv.targetPlatform.isWindows
-    ([ "-DPXR_BUILD_TESTS=false" ])
-    ++ lib.optionals static ([ "-DBUILD_SHARED_LIBS=false" ])
-    ++ lib.optionals embreeSupport ([ "-DPXR_BUILD_EMBREE_PLUGIN=true" ])
-    ++ lib.optionals dracoSupport ([ "-DPXR_BUILD_DRACO_PLUGIN=true" ])
-    ++ lib.optionals openimageioSupport
-    ([ "-DPXR_BUILD_OPENIMAGEIO_PLUGIN=true" ])
-    ++ lib.optionals materialxSupport
-    ([ "-DPXR_ENABLE_MATERIALX_SUPPORT=true" ])
-    ++ lib.optionals vulkanSupport ([ "-DPXR_ENABLE_VULKAN_SUPPORT=true" ])
-  ;
+  cmakeFlags = [
+    (lib.cmakeBool "PXR_ENABLE_PYTHON_SUPPORT" false)
+    (lib.cmakeBool "OneTBB_CMAKE_ENABLE" true)
+    (lib.cmakeBool "BUILD_SHARED_LIBS" (!static))
+    (lib.cmakeBool "PXR_BUILD_TESTS" buildTests)
+    (lib.cmakeBool "PXR_BUILD_EXAMPLES" buildExamples)
+    (lib.cmakeBool "PXR_BUILD_MONOLITHIC" buildMonolithic)
+    (lib.cmakeBool "PXR_BUILD_EMBREE_PLUGIN" embreeSupport)
+    (lib.cmakeBool "PXR_BUILD_DRACO_PLUGIN" dracoSupport)
+    (lib.cmakeBool "PXR_BUILD_OPENIMAGEIO_PLUGIN" openimageioSupport)
+    (lib.cmakeBool "PXR_ENABLE_MATERIALX_SUPPORT" materialxSupport)
+    (lib.cmakeBool "PXR_ENABLE_VULKAN_SUPPORT" vulkanSupport)
+  ];
 }

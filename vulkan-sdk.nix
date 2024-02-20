@@ -1,4 +1,4 @@
-{ stdenv, vulkan-headers, shaderc }:
+{ stdenv, vulkan-headers, vulkan-loader, shaderc }:
 stdenv.mkDerivation {
   name = "vulkan-sdk";
 
@@ -17,7 +17,13 @@ stdenv.mkDerivation {
     };
   in ''
     mkdir -p $out/include
-    ln -s ${shaderc.static}/lib $out/lib
+    mkdir -p $out/lib
+    for file in ${shaderc.static}/lib/*; do
+      ln -s $file $out/lib/$(basename $file)
+    done
+    for file in ${vulkan-loader}/lib/*; do
+      ln -s $file $out/lib/$(basename $file)
+    done
     ln -s ${shaderc.dev}/include/shaderc $out/include/shaderc
     ln -s ${vma}/include $out/include/vma
     ln -s ${spirv-reflect} $out/include/SPIRV-Reflect

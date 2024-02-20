@@ -2,7 +2,7 @@
   description = "C++ Crosscompilation Example";
 
   inputs = {
-    nixpkgs.url = "github:expenses/nixpkgs/mingw-shaderc";
+    nixpkgs.url = "/home/ashley/projects/nixpkgs";
     materialx.url = "github:expenses/materialx-nix";
     materialx.inputs.nixpkgs.follows = "nixpkgs";
   };
@@ -13,41 +13,37 @@
         [ "x86_64-linux" "aarch64-linux" "aarch64-darwin" "x86_64-darwin" ];
       perSystem = { config, pkgs, system, ... }: {
         packages = let
-          args = {
+          vulkan-sdk = pkgs.callPackage ./vulkan-sdk.nix { };
+          vulkan-sdk-win =
+            pkgs.pkgsCross.mingwW64.callPackage ./vulkan-sdk.nix { };
+        in rec {
+          default = pkgs.callPackage ./package.nix {
+            inherit vulkan-sdk;
             # Override the stdenv for darwin as we need to use the 11.0 sdk and not 10.x
             stdenv = if pkgs.stdenv.isDarwin then
               pkgs.darwin.apple_sdk_11_0.stdenv
             else
               pkgs.stdenv;
             materialx = materialx.packages.${system}.default;
-            vulkan-sdk = pkgs.callPackage ./vulkan-sdk.nix { };
           };
-          fullArgs = args // {
+          vulkan = default.override { vulkanSupport = true; };
+          static = default.override { static = true; };
+          full = default.override {
             embreeSupport = true;
             dracoSupport = true;
             openimageioSupport = true;
             materialxSupport = true;
             vulkanSupport = true;
           };
-          windows-tbb = pkgs.callPackage ./msys2-packages/tbb-2020.nix { };
-        in {
-          default = pkgs.callPackage ./package.nix args;
-          vulkan = pkgs.callPackage ./package.nix (args // { vulkanSupport = true; });
-          static = pkgs.callPackage ./package.nix (args // { static = true; });
-          full = pkgs.callPackage ./package.nix fullArgs;
 
-          vulkan-sdk = args.vulkan-sdk;
+          inherit vulkan-sdk vulkan-sdk-win;
 
-          inherit windows-tbb;
-
-          windows = pkgs.pkgsCross.mingwW64.callPackage ./package.nix (args // {
-            stdenv = pkgs.pkgsCross.mingwW64.stdenv;
-            tbb = windows-tbb;
-            opensubdiv = pkgs.pkgsCross.mingwW64.callPackage
-              ./msys2-packages/opensubdiv.nix { };
+          windows = pkgs.pkgsCross.mingwW64.callPackage ./package.nix {
             static = true;
-            vulkan-sdk = pkgs.pkgsCross.mingwW64.callPackage ./vulkan-sdk.nix { };
-          });
+            vulkan-sdk = vulkan-sdk-win;
+            vulkanSupport = true;
+            materialx = materialx.packages.${system}.default;
+          };
         };
       };
       flake = { };

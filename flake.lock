@@ -57,18 +57,18 @@
     },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1708003310,
-        "narHash": "sha256-At+ywTnYPcpcboZ3DFA1q6t4hS8UFAtH5XXw91gw+zg=",
-        "owner": "expenses",
-        "repo": "nixpkgs",
-        "rev": "f6725ead0db096814b6e5ee76838db9291972858",
-        "type": "github"
+        "dirtyRev": "4ee2f456002a8d91718fd3839ac57f09e1f9be5a-dirty",
+        "dirtyShortRev": "4ee2f456002a-dirty",
+        "lastModified": 1708399323,
+        "narHash": "sha256-YvhYWkptO0z7wGbjcF7oIPlnO0jzlwIpDxeo2XGTysA=",
+        "shallow": true,
+        "type": "git",
+        "url": "file:///home/ashley/projects/nixpkgs"
       },
       "original": {
-        "owner": "expenses",
-        "ref": "mingw-shaderc",
-        "repo": "nixpkgs",
-        "type": "github"
+        "shallow": true,
+        "type": "git",
+        "url": "file:///home/ashley/projects/nixpkgs"
       }
     },
     "nixpkgs-lib": {
