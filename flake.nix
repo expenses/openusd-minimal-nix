@@ -2,9 +2,8 @@
   description = "C++ Crosscompilation Example";
 
   inputs = {
-    nixpkgs.url = "/home/ashley/projects/nixpkgs";
+    nixpkgs.url = "github:expenses/nixpkgs/my-patches-for-openusd";
     materialx.url = "github:expenses/materialx-nix";
-    materialx.inputs.nixpkgs.follows = "nixpkgs";
   };
 
   outputs = inputs@{ flake-parts, materialx, ... }:

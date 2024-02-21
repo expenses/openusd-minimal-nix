@@ -31,8 +31,12 @@ stdenv.mkDerivation {
     ++ lib.optionals vulkanSupport [ ./vulkan.patch ]
   ;
 
-  buildInputs = [ boost tbb_2021_8 opensubdiv ]
-    ++ lib.optionals (!stdenv.targetPlatform.isWindows) ([ libGL ])
+  buildInputs = [
+    boost
+    (tbb_2021_8.override { static = !stdenv.targetPlatform.isWindows; })
+    opensubdiv.static
+    opensubdiv.dev
+  ] ++ lib.optionals (!stdenv.targetPlatform.isWindows) ([ libGL ])
     ++ lib.optionals stdenv.isLinux ([ xorg.libX11 ])
     ++ lib.optionals stdenv.isDarwin
     (with darwin.apple_sdk_11_0.frameworks; [ Cocoa MetalKit ])

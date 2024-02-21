@@ -37,9 +37,7 @@
     "materialx": {
       "inputs": {
         "flake-parts": "flake-parts_2",
-        "nixpkgs": [
-          "nixpkgs"
-        ]
+        "nixpkgs": "nixpkgs"
       },
       "locked": {
         "lastModified": 1707553506,
@@ -57,18 +55,18 @@
     },
     "nixpkgs": {
       "locked": {
-        "dirtyRev": "4ee2f456002a8d91718fd3839ac57f09e1f9be5a-dirty",
-        "dirtyShortRev": "4ee2f456002a-dirty",
-        "lastModified": 1708399323,
-        "narHash": "sha256-YvhYWkptO0z7wGbjcF7oIPlnO0jzlwIpDxeo2XGTysA=",
-        "shallow": true,
-        "type": "git",
-        "url": "file:///home/ashley/projects/nixpkgs"
+        "lastModified": 1708296515,
+        "narHash": "sha256-FyF489fYNAUy7b6dkYV6rGPyzp+4tThhr80KNAaF/yY=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "b98a4e1746acceb92c509bc496ef3d0e5ad8d4aa",
+        "type": "github"
       },
       "original": {
-        "shallow": true,
-        "type": "git",
-        "url": "file:///home/ashley/projects/nixpkgs"
+        "owner": "NixOS",
+        "ref": "nixos-unstable",
+        "repo": "nixpkgs",
+        "type": "github"
       }
     },
     "nixpkgs-lib": {
@@ -107,11 +105,27 @@
         "type": "github"
       }
     },
+    "nixpkgs_2": {
+      "locked": {
+        "lastModified": 1708490553,
+        "narHash": "sha256-GMuLR5ygQX34zbvxPNMCkyNAhqhJ/dEzjpY4rLYuIUc=",
+        "owner": "expenses",
+        "repo": "nixpkgs",
+        "rev": "1d801d211ff2cf5ad956e619135e01e4aaedfe0c",
+        "type": "github"
+      },
+      "original": {
+        "owner": "expenses",
+        "ref": "my-patches-for-openusd",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
     "root": {
       "inputs": {
         "flake-parts": "flake-parts",
         "materialx": "materialx",
-        "nixpkgs": "nixpkgs"
+        "nixpkgs": "nixpkgs_2"
       }
     }
   },
