@@ -39,7 +39,7 @@ stdenv.mkDerivation {
   ] ++ lib.optionals (!stdenv.targetPlatform.isWindows) ([ libGL ])
     ++ lib.optionals stdenv.isLinux ([ xorg.libX11 ])
     ++ lib.optionals stdenv.isDarwin
-    (with darwin.apple_sdk_11_0.frameworks; [ Cocoa MetalKit ])
+    ([ darwin.moltenvk ] ++ with darwin.apple_sdk_11_0.frameworks; [ Cocoa MetalKit ])
     ++ lib.optionals embreeSupport ([ embree ])
     ++ lib.optionals dracoSupport ([ draco ])
     ++ lib.optionals openimageioSupport ([ openimageio openexr imath ])

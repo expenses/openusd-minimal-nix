@@ -21,6 +21,13 @@
             # Override the stdenv for darwin as we need to use the 11.0 sdk and not 10.x
             stdenv = if pkgs.stdenv.isDarwin then
               pkgs.darwin.apple_sdk_11_0.stdenv
+                .override (oldStdenv: {
+                  # Additionally set the min darwin version because of clang and aligned allocation reasons
+                  # See https://github.com/NixOS/nixpkgs/blob/f433c05d56393df721d791029402f676d262c399/pkgs/development/python-modules/pybind11/default.nix#L26-L36
+                  buildPlatform = oldStdenv.buildPlatform // { darwinMinVersion = "10.13"; };
+                  targetPlatform = oldStdenv.targetPlatform // { darwinMinVersion = "10.13"; };
+                  hostPlatform = oldStdenv.hostPlatform // { darwinMinVersion = "10.13"; };
+                })
             else
               pkgs.stdenv;
             materialx = materialx.packages.${system}.default;
